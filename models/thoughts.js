@@ -1,75 +1,75 @@
-const { Schema, Types } = require('mongoose');
+const { Schema, model, Types } = require('mongoose');
 
-const thoughtSchema = new Schema(
-  {
-    thoughtId: {
-      type: Schema.Types.ObjectId,
-      default: () => new Types.ObjectId(),
-    },
-    thoughtText: {
-      type: String,
-      required: true,
-      maxlength: 280,
-      minlength:1
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      timestamps: true
-    },
-    username:{
-      type: String,
-      required: true
-    },
-    reactions: [reactionSchema],
+const moment = require('moment')
 
-  },
-  {
-    toJSON: {
-      virtuals: true,
-      getters: true,
+//reaction schema
+const reactionSchema = new Schema (
+    {
+       reactionId: {
+        type: Schema.Types.ObjectId,
+        default: () => new Types.ObjectId(),
+       },
+       reactionBody: {
+        type: String,
+        required: true,
+        maxlength: 280
+       },
+       username: {
+        type: String,
+        required: true,
+       },
+       createdAt: {
+        type: Date,
+        default: Date.now,
+        get: createdAtVal => moment(createdAtVal).format("MMM DD, YYYY [at] hh:mm a"),
+       },
     },
-    id: false,
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true
+        },
+        id: false,
+    }
+)
 
-  }
-);
-thoughtSchema.virtual("reactionCount").get(function(){
-  return this.reactions.length;
-});
-const thought = model('reaction', thoughtSchema)
-// write a new schema like above same goes on to the users reaction
-module.exports = thought;
+// thought schema
+const thoughtSchema = new Schema (
+    {
+      thoughtText: {
+        type: String,
+        required: true,
+        minlength: 1,
+        maxlength: 280,
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+        get: createdAtVal => moment(createdAtVal).format("MMM DD, YYYY [at] hh:mm a"),
+      },
+      username: {
+        type: String,
+        required: true,
+      },
+      reactions: [reactionSchema],
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+        },
+        id: false,
+    }
+)
 
-const reactionSchema = new Schema(
-  {
-    reactionId: {
-      type: Schema.Types.ObjectId,
-      default: () => new Types.ObjectId(),
-    },
-    reactionBody: {
-      type: String,
-      required: true,
-      maxlength: 280,
-      minlength:1
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      timestamps: true
-    },
-    username:{
-      type: String,
-      required: true
-    },
-    reactions: [reactionSchema],
 
-  },
-  {
-    toJSON: {
-      virtuals: true,
-      getters: true,
-    },
-    id: false,
 
-  }
-);
+thoughtSchema.virtual('reactionCount')
+.get(function() {
+    return this.reactions.length;
+})
+
+// create the User model using the UserSchema
+const Thought = model('Thought', thoughtSchema);
+
+module.exports = Thought;
